@@ -3,15 +3,23 @@ use clap::{Arg, App};
 
 /// The encryption can also be represented using modular arithmetic by first
 /// transforming the letters into numbers, according to the scheme, A → 0,
-/// B → 1, ..., Z → 25. Encryption of a letter x by a shift n can be
-/// described mathematically as,
+/// B → 1, ..., Z → 25. 
 
-/// *E~n~(x)* = *(x+n)* mod 26.
-///
-/// Decryption is performed similarly,
-///
-/// *D~n~(x)* = *(x-n)* mod 26.
-///
+fn encrypt(n: i32, text: &str) -> &str { // maybe define as a trait on String? 
+    
+    /// Encryption of a letter x by a shift n can be described mathematically as,
+    /// *E~n~(x)* = *(x+n)* mod 26.
+
+    "implement later"
+}
+
+fn decrypt(n: i32, text: &str) -> &str { // maybe define as a trait on String? 
+    /// Decryption is performed similarly:
+    /// *D~n~(x)* = *(x-n)* mod 26.
+    
+    "implement later"
+}
+
 /// (There are different definitions for the modulo operation. In the above, the
 /// result is in the range 0 to 25; i.e., if x + n or x − n are not in the
 /// range 0 to 25, we have to subtract or add 26.)
