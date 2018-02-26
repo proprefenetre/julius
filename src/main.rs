@@ -16,17 +16,7 @@ use clap::{Arg, App};
 /// result is in the range 0 to 25; i.e., if x + n or x − n are not in the
 /// range 0 to 25, we have to subtract or add 26.)
 
-enum Mode {
-    Encrypt(String),
-    Decrypt(String),
-}
-
-struct Cipher {
-    shift: i32,
-}
-
 fn main() {
-
    let matches = App::new("Caesar")
                         .about("Encrypts text, Imperially")
                         .version("0.1")
@@ -36,31 +26,47 @@ fn main() {
                                     .short("e")
                                     .long("encrypt")
                                     .takes_value(true)
+                                    .value_name("TEXT")
                                     .conflicts_with("decrypt"))
                         .arg(Arg::with_name("decrypt")
                                     .help("decrypt encrypted text")
                                     .short("d")
                                     .long("decrypt")
                                     .takes_value(true)
+                                    .value_name("TEXT")
                                     .conflicts_with("encrypt"))
                         .arg(Arg::with_name("output")
                                     .help("output file")
                                     .short("o")
                                     .long("output")
-                                    .takes_value(true))
+                                    .takes_value(true)
+                                    .value_name("FILE"))
                         .arg(Arg::with_name("shift")
                                     .help("Encryption shift")
                                     .short("s")
                                     .long("shift")
-                                    .takes_value(true))
+                                    .takes_value(true)
+                                    .value_name("N"))
                         .get_matches();
 
-    // If we wanted to some custom initialization based off some configuration file provided
-    // by the user, we could get the file (A string of the file)
-    if let Some(ref txt) = matches.value_of("encrypt") {
-        println!("Encrypting: {}", txt);
-    }
 
-    let shift = matches.value_of("shift").unwrap_or(1);
+    let out = match matches.value_of("output") {
+        Some(ref f) => "file object",
+        None => "stdout",
+    };
+
+    let shift: i32 = matches.value_of("shift").unwrap_or("1").parse().unwrap();
+
+    println!("writing to {}", out);
+    println!("shifting: {}", shift);
             
+    if matches.is_present("encrypt") { 
+        // let result = encrypt(shift, matches.value_of("encrypt"));
+        // print(result, out);
+        println!("{:?}", matches.value_of("encrypt"));
+    } else if matches.is_present("decrypt") {
+        // let result = decrypt(shift, matches.value_of("encrypt"));
+        // print(result, out);
+        println!("{:?}", matches.value_of("decrypt"));
+    }
 }
