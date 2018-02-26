@@ -1,5 +1,5 @@
 extern crate clap;
-use clap::{Arg, App, SubCommand};
+use clap::{Arg, App};
 
 /// The encryption can also be represented using modular arithmetic by first
 /// transforming the letters into numbers, according to the scheme, A → 0,
@@ -34,20 +34,25 @@ fn main() {
                         .arg(Arg::with_name("encrypt")
                                     .help("Encrypt text")
                                     .short("e")
-                                    .long("encrypt"))
+                                    .long("encrypt")
                                     .takes_value(true)
-                                    .conflicts_with("decrypt")
+                                    .conflicts_with("decrypt"))
                         .arg(Arg::with_name("decrypt")
                                     .help("decrypt encrypted text")
                                     .short("d")
-                                    .long("decrypt"))
+                                    .long("decrypt")
                                     .takes_value(true)
-                                    .conflicts_with("encrypt")
+                                    .conflicts_with("encrypt"))
                         .arg(Arg::with_name("output")
                                     .help("output file")
                                     .short("o")
-                                    .long("output"))
-                                    .takes_value(true)
+                                    .long("output")
+                                    .takes_value(true))
+                        .arg(Arg::with_name("shift")
+                                    .help("Encryption shift")
+                                    .short("s")
+                                    .long("shift")
+                                    .takes_value(true))
                         .get_matches();
 
     // If we wanted to some custom initialization based off some configuration file provided
@@ -55,5 +60,7 @@ fn main() {
     if let Some(ref txt) = matches.value_of("encrypt") {
         println!("Encrypting: {}", txt);
     }
+
+    let shift = matches.value_of("shift").unwrap_or(1);
             
 }
