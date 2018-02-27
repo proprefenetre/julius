@@ -76,10 +76,6 @@ fn main() {
                         .get_matches();
 
 
-    let out = match matches.value_of("output") {
-        Some(ref f) => "file object",
-        None => "stdout",
-    };
 
     let shift: i32 = matches.value_of("shift").unwrap_or("1").parse().unwrap();
 
@@ -87,12 +83,19 @@ fn main() {
     println!("shifting: {}", shift);
             
     if matches.is_present("encrypt") { 
-        // let result = encrypt(shift, matches.value_of("encrypt"));
-        // print(result, out);
-        println!("{:?}", matches.value_of("encrypt"));
+        let result = encrypt(shift, matches.value_of("encrypt"));
     } else if matches.is_present("decrypt") {
-        // let result = decrypt(shift, matches.value_of("encrypt"));
-        // print(result, out);
-        println!("{:?}", matches.value_of("decrypt"));
+        let result = decrypt(shift, matches.value_of("encrypt"));
     }
+    println!("{}", result);
+
+    let out = match matches.value_of("output") {
+        Some(ref file) => { 
+            let mut f = File::open(file);
+            print(f, result);
+        }
+        None => print(io::stdout(), result);
+    };
 }
+
+
