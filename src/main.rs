@@ -3,7 +3,7 @@ use clap::{Arg, App};
 
 use std::io;
 use std::io::prelude::*;
-use std::fs::File;
+use std::fs::OpenOptions;
 
 
 /// The encryption can also be represented using modular arithmetic by first
@@ -90,7 +90,10 @@ fn main() {
 
     match matches.value_of("output") {
         Some(ref file) => { 
-            let mut f = File::open(file).expect("Error: file not found");
+            let mut f = OpenOptions::new()
+                .write(true)
+                .create(true)
+                .open(file).unwrap();
             print(&mut f, &result);
         },
         None => print(&mut io::stdout(), &result).unwrap(),
