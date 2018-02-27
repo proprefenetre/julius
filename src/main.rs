@@ -37,9 +37,10 @@ fn decrypt(shift: u8, text: &str) -> String {
     encrypt(shiftback, text)
 }
 
-/// (There are different definitions for the modulo operation. In the above, the
-/// result is in the range 0 to 25; i.e., if x + n or x − n are not in the
-/// range 0 to 25, we have to subtract or add 26.)
+fn print<W: Write>(to: &mut W, msg: &str) -> io::Result<()> {
+    to.write_all(msg);
+    to.flush()
+}
 
 fn main() {
    let matches = App::new("Caesar")
