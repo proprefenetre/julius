@@ -88,7 +88,7 @@ fn main() {
                 .open(file).unwrap();
                 f.write_fmt(format_args!("{}\n", value)).unwrap();
         },
-        None => io::stdout().write_fmt(format_args!("{}\n\r", value)).unwrap(),
+        None => io::stdout().write_fmt(format_args!("> {}\n", value)).unwrap(),
     }
 }
 
