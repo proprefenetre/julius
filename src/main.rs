@@ -3,19 +3,11 @@ use clap::{Arg, App};
 
 use std::io;
 use std::io::prelude::*;
+use std::fs::File;
 use std::fs::OpenOptions;
-
-
-/// The encryption can also be represented using modular arithmetic by first
-/// transforming the letters into numbers, according to the scheme, A → 0,
-/// B → 1, ..., Z → 25. 
-///
+use std::path::Path;
 
 fn encrypt(shift: u8, text: &str) -> String {
-    
-    /// Encryption of a letter x by a shift n can be described mathematically as,
-    /// *E~n~(x)* = *(x+n)* mod 26.
-    
     let mut cipher: Vec<char> = vec![];
     for c in text.chars() {
         let case = if c.is_uppercase() { 'A' } else { 'a' } as u8;
@@ -29,17 +21,19 @@ fn encrypt(shift: u8, text: &str) -> String {
 }
 
 fn decrypt(shift: u8, text: &str) -> String {
-
-    /// Decryption is performed similarly:
-    /// *D~n~(x)* = *(x-n)* mod 26.
-    
     let shiftback = 26u8 - shift;
     encrypt(shiftback, text)
 }
 
-fn print<W: Write>(out: &mut W, msg: &str) -> io::Result<()> {
-    out.write_fmt(format_args!("{}\n", msg))?;
-    out.flush()
+fn file_or_str(inp: &str) -> String {
+    if let true = Path::new(&inp).exists() {
+        let mut buf = String::new();
+        let mut f = File::open(inp).unwrap();
+        f.read_to_string(&mut buf).unwrap();
+        buf
+    } else {
+        inp.to_string()
+    }
 }
 
 fn main() {
@@ -52,14 +46,14 @@ fn main() {
                                     .short("e")
                                     .long("encrypt")
                                     .takes_value(true)
-                                    .value_name("TEXT")
+                                    .value_name("TEXT or FILE")
                                     .conflicts_with("decrypt"))
                         .arg(Arg::with_name("decrypt")
                                     .help("decrypt encrypted text")
                                     .short("d")
                                     .long("decrypt")
                                     .takes_value(true)
-                                    .value_name("TEXT")
+                                    .value_name("TEXT or FILE")
                                     .conflicts_with("encrypt"))
                         .arg(Arg::with_name("output")
                                     .help("output file")
@@ -68,22 +62,20 @@ fn main() {
                                     .takes_value(true)
                                     .value_name("FILE"))
                         .arg(Arg::with_name("shift")
-                                    .help("Encryption shift")
+                                    .help("Encryption shift, default is 13")
                                     .short("s")
                                     .long("shift")
                                     .takes_value(true)
                                     .value_name("N"))
                         .get_matches();
 
+    let shift: u8 = matches.value_of("shift").unwrap_or("13").parse().unwrap();
 
-
-    let shift: u8 = matches.value_of("shift").unwrap_or("1").parse().unwrap();
-
-    let result;
+    let value;
     if matches.is_present("encrypt") { 
-        result = encrypt(shift, &matches.value_of("encrypt").unwrap());
+        value = encrypt(shift, &file_or_str(matches.value_of("encrypt").unwrap()));
     } else if matches.is_present("decrypt") {
-        result = decrypt(shift, &matches.value_of("decrypt").unwrap());
+        value = decrypt(shift, &file_or_str(matches.value_of("decrypt").unwrap()));
     } else {
         panic!("Something went wrong!");
     }
@@ -94,9 +86,9 @@ fn main() {
                 .write(true)
                 .create(true)
                 .open(file).unwrap();
-            print(&mut f, &result);
+                f.write_fmt(format_args!("{}\n", value)).unwrap();
         },
-        None => print(&mut io::stdout(), &result).unwrap(),
+        None => io::stdout().write_fmt(format_args!("{}\n\r", value)).unwrap(),
     }
 }
 
