@@ -77,17 +77,16 @@ fn main() {
 
 
 
-    let shift: i32 = matches.value_of("shift").unwrap_or("1").parse().unwrap();
+    let shift: u8 = matches.value_of("shift").unwrap_or("1").parse().unwrap();
 
-    println!("writing to {}", out);
-    println!("shifting: {}", shift);
-            
+    let result;
     if matches.is_present("encrypt") { 
-        let result = encrypt(shift, matches.value_of("encrypt"));
+        result = encrypt(shift, &matches.value_of("encrypt").unwrap());
     } else if matches.is_present("decrypt") {
-        let result = decrypt(shift, matches.value_of("encrypt"));
+        result = decrypt(shift, &matches.value_of("decrypt").unwrap());
+    } else {
+        panic!("Something went wrong!");
     }
-    println!("{}", result);
 
     let out = match matches.value_of("output") {
         Some(ref file) => { 
