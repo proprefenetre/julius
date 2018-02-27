@@ -88,13 +88,13 @@ fn main() {
         panic!("Something went wrong!");
     }
 
-    let out = match matches.value_of("output") {
+    match matches.value_of("output") {
         Some(ref file) => { 
-            let mut f = File::open(file);
-            print(f, result);
-        }
-        None => print(io::stdout(), result);
-    };
+            let mut f = File::open(file).expect("Error: file not found");
+            print(&mut f, &result);
+        },
+        None => print(&mut io::stdout(), &result).unwrap(),
+    }
 }
 
 
