@@ -39,7 +39,7 @@ fn file_or_str(inp: &str) -> String {
 fn main() {
    let matches = App::new("Caesar")
                         .about("Encrypts text, Imperially")
-                        .version("0.1")
+                        .version("1.0")
                         .author("Niels Eigenraam <nielseigenraam@gmail.com>")
                         .arg(Arg::with_name("encrypt")
                                     .help("Encrypt text")
