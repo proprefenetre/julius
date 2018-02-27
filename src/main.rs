@@ -37,9 +37,9 @@ fn decrypt(shift: u8, text: &str) -> String {
     encrypt(shiftback, text)
 }
 
-fn print<W: Write>(to: &mut W, msg: &str) -> io::Result<()> {
-    to.write_all(msg);
-    to.flush()
+fn print<W: Write>(out: &mut W, msg: &str) -> io::Result<()> {
+    out.write_fmt(format_args!("{}\n", msg))?;
+    out.flush()
 }
 
 fn main() {
