@@ -43,9 +43,9 @@ pub fn run(matches: ArgMatches) -> Result<(), String> {
 
     let value;
     if matches.is_present("encrypt") {
-        value = encrypt(shift, &file_or_str(matches.value_of("INPUT").unwrap()));
+        value = encrypt(shift, &file_or_str(matches.value_of("encrypt").unwrap()));
     } else if matches.is_present("decrypt") {
-        value = decrypt(shift, &file_or_str(matches.value_of("INPUT").unwrap()));
+        value = decrypt(shift, &file_or_str(matches.value_of("decrypt").unwrap()));
     } else {
         return Err("Et tu, Brute?".to_string())
     }
