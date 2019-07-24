@@ -7,6 +7,8 @@ everybody knows about it. No more worrying about lost keys!
 # TO DO
 - print usage when used without arguments
 - accept input without flags or command line flags
+- remove ">" in front of output
+- add subcommands: 'e' for 'encrypt', 'd' for 'decrypt'
 
 # Usage
 
@@ -39,12 +41,12 @@ $ caesar -e RGGHOEHGR
 ~~~
 
 If you give it a file path, `caesar` will read its input from the file. You can
-specify your own secret shift using the `-s/--shift` option. The encrypted contents of the file 
+specify your own secret shift using the `-s/--shift` option. The encrypted contents of the file
 will be written to stdout or to a file if one is specified using the `-o/--output` option.
 
 ~~~
 $ caesar -s 5 -e ITSJUSTARABBIT
-> NGGNPXNGQNJA 
+> NGGNPXNGQNJA
 $ caesar -s 5 -d NGGNPXNGQNJA -o message.txt
 $ cat message.txt
 ITSJUSTARABBIT
@@ -66,4 +68,4 @@ $ cargo build --release
 $ cargo install
 ~~~
 
-You might want to add `~/.cargo/bin` to you path, if it isn't already. 
+You might want to add `~/.cargo/bin` to you path, if it isn't already.
