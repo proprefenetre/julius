@@ -2,9 +2,13 @@
 
 The Caesar Cipher is a wonderful encryption algorithm if you have got nothing
 to hide. Its strong points are that the cipher is very easy to break, and that
-everybody knows about it.
+everybody knows about it. No more worrying about lost keys!
 
-## Usage
+# TO DO
+- print usage when used without arguments
+- accept input without flags or command line flags
+
+# Usage
 
 ~~~
 Caesar 1.0
@@ -28,15 +32,15 @@ OPTIONS:
 By default, `caesar` can be used to decipher classified text using ROT13:
 
 ~~~
-$ caesar -e ATTACKATDAWN
-> NGGNPXNGQNJA
-$ caesar -e NGGNPXNGQNJA
-> ATTACKATDAWN
+$ caesar -e ETTUBRUTE
+> RGGHOEHGR
+$ caesar -e RGGHOEHGR
+> ETTUBRUTE
 ~~~
 
 If you give it a file path, `caesar` will read its input from the file. You can
-specify your own secret shift using the `-s/--shift` option. will be written to
-stdout or to a file if one is specified using the `-o/--output` option.
+specify your own secret shift using the `-s/--shift` option. The encrypted contents of the file 
+will be written to stdout or to a file if one is specified using the `-o/--output` option.
 
 ~~~
 $ caesar -s 5 -e ITSJUSTARABBIT
