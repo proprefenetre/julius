@@ -1,7 +1,5 @@
-#![allow(unused_imports)]
-
 extern crate clap;
-use clap::{Arg, App, ArgMatches, SubCommand};
+use clap::{Arg, App, ArgMatches};
 
 use std::io;
 use std::io::prelude::*;
@@ -41,15 +39,13 @@ fn file_or_str(inp: &str) -> String {
 
 pub fn run(matches: ArgMatches) -> Result<(), String> {
 
-    // let shift: u8 = matches.value_of("shift").unwrap_or("13").parse().unwrap();
+    let shift: u8 = matches.value_of("shift").unwrap_or("13").parse().unwrap();
 
     let value;
     if matches.is_present("encrypt") {
-        // value = encrypt(shift, &file_or_str(matches.value_of("INPUT").unwrap()));
-        value = encrypt(13 as u8, &file_or_str(matches.value_of("INPUT").unwrap()));
+        value = encrypt(shift, &file_or_str(matches.value_of("INPUT").unwrap()));
     } else if matches.is_present("decrypt") {
-        // value = decrypt(shift, &file_or_str(matches.value_of("INPUT").unwrap()));
-        value = decrypt(13 as u8, &file_or_str(matches.value_of("INPUT").unwrap()));
+        value = decrypt(shift, &file_or_str(matches.value_of("INPUT").unwrap()));
     } else {
         return Err("Et tu, Brute?".to_string())
     }
