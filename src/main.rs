@@ -1,11 +1,15 @@
+#![allow(unused_imports)]
+
 extern crate clap;
-use clap::{Arg, App};
+use clap::{Arg, App, ArgMatches, SubCommand};
 
 use std::io;
 use std::io::prelude::*;
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::path::Path;
+use std::process;
+
 
 fn encrypt(shift: u8, text: &str) -> String {
     let mut cipher: Vec<char> = vec![];
@@ -21,8 +25,7 @@ fn encrypt(shift: u8, text: &str) -> String {
 }
 
 fn decrypt(shift: u8, text: &str) -> String {
-    let shiftback = 26u8 - shift;
-    encrypt(shiftback, text)
+    encrypt(26u8 - shift, text)
 }
 
 fn file_or_str(inp: &str) -> String {
@@ -33,6 +36,61 @@ fn file_or_str(inp: &str) -> String {
         buf
     } else {
         inp.to_string()
+    }
+}
+
+pub fn run(matches: ArgMatches) -> Result<(), String> {
+
+    // let shift: u8 = matches.value_of("shift").unwrap_or("13").parse().unwrap();
+
+    let value;
+    if matches.is_present("encrypt") {
+        // value = encrypt(shift, &file_or_str(matches.value_of("INPUT").unwrap()));
+        value = encrypt(13 as u8, &file_or_str(matches.value_of("INPUT").unwrap()));
+    } else if matches.is_present("decrypt") {
+        // value = decrypt(shift, &file_or_str(matches.value_of("INPUT").unwrap()));
+        value = decrypt(13 as u8, &file_or_str(matches.value_of("INPUT").unwrap()));
+    } else {
+        return Err("Et tu, Brute?".to_string())
+    }
+
+    match matches.value_of("output") {
+        Some(ref file) => {
+            let mut f = OpenOptions::new()
+                .write(true)
+                .create(true)
+                .open(file).unwrap();
+                f.write_fmt(format_args!("{}\n", value)).unwrap();
+        },
+        None => io::stdout().write_fmt(format_args!("{}\n", value)).unwrap(),
+    }
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_encryption() {
+        assert_eq!(encrypt(13, "ETTUBRUTE"), "RGGHOEHGR");
+    }
+
+    #[test]
+    fn test_decryption() {
+        assert_eq!(decrypt(13, "RGGHOEHGR"), "ETTUBRUTE");
+    }
+
+    #[test]
+    fn test_shift() {
+        let shift: u8 = 5;
+        assert_eq!("ETTUBRUTE", decrypt(shift, &encrypt(shift, "ETTUBRUTE")));
+    }
+
+    #[test]
+    fn test_file_or_str() {
+        assert_eq!(file_or_str("this is a string"), "this is a string")
     }
 }
 
@@ -69,27 +127,8 @@ fn main() {
                                     .value_name("N"))
                         .get_matches();
 
-    let shift: u8 = matches.value_of("shift").unwrap_or("13").parse().unwrap();
-
-    let value;
-    if matches.is_present("encrypt") { 
-        value = encrypt(shift, &file_or_str(matches.value_of("encrypt").unwrap()));
-    } else if matches.is_present("decrypt") {
-        value = decrypt(shift, &file_or_str(matches.value_of("decrypt").unwrap()));
-    } else {
-        panic!("Something went wrong!");
-    }
-
-    match matches.value_of("output") {
-        Some(ref file) => { 
-            let mut f = OpenOptions::new()
-                .write(true)
-                .create(true)
-                .open(file).unwrap();
-                f.write_fmt(format_args!("{}\n", value)).unwrap();
-        },
-        None => io::stdout().write_fmt(format_args!("> {}\n", value)).unwrap(),
+   if let Err(e) = run(matches) {
+        println!("{}", e);
+        process::exit(1);
     }
 }
-
-
