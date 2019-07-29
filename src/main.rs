@@ -1,29 +1,27 @@
 extern crate clap;
-use clap::{Arg, App, ArgMatches};
+use clap::{App, Arg, ArgMatches};
 
-use std::io;
-use std::io::prelude::*;
 use std::fs::File;
 use std::fs::OpenOptions;
+use std::io;
+use std::io::prelude::*;
 use std::path::Path;
 use std::process;
 
-
-fn encrypt(shift: u8, text: &str) -> String {
+fn encrypt(shift: i32, text: &str) -> String {
+    if shift < 0 {
+        shift = 26 + shift;
+    }
     let mut cipher: Vec<char> = vec![];
     for c in text.chars() {
-        let case = if c.is_uppercase() { 'A' } else { 'a' } as u8;
+        let case: u8 = if c.is_uppercase() { 'A' } else { 'a' } as u8;
         if c.is_alphabetic() {
-            cipher.push((((c as u8 - case + shift) % 26) + case) as char);
+            cipher.push((((c as u8 - case + shift as u8) % 26) + case) as char);
         } else {
             cipher.push(c as char);
         }
     }
     cipher.iter().collect::<String>()
-}
-
-fn decrypt(shift: u8, text: &str) -> String {
-    encrypt(26u8 - shift, text)
 }
 
 fn file_or_str(inp: &str) -> String {
@@ -38,16 +36,16 @@ fn file_or_str(inp: &str) -> String {
 }
 
 pub fn run(matches: ArgMatches) -> Result<(), String> {
+    let mut value = String::new();
+    for m in vec!["encrypt", "decrypt"].iter() {
+        let mut shift: u8 = matches.value_of("shift").unwrap_or("13").parse().unwrap();
 
-    let shift: u8 = matches.value_of("shift").unwrap_or("13").parse().unwrap();
-
-    let value;
-    if matches.is_present("encrypt") {
-        value = encrypt(shift, &file_or_str(matches.value_of("encrypt").unwrap()));
-    } else if matches.is_present("decrypt") {
-        value = decrypt(shift, &file_or_str(matches.value_of("decrypt").unwrap()));
-    } else {
-        return Err("Et tu, Brute?".to_string())
+        if matches.is_present(m) {
+            if *m == "decrypt" {
+                shift = 26u8 - shift;
+            }
+            value = encrypt(shift, &file_or_str(matches.value_of(m).unwrap()));
+        }
     }
 
     match matches.value_of("output") {
@@ -55,12 +53,12 @@ pub fn run(matches: ArgMatches) -> Result<(), String> {
             let mut f = OpenOptions::new()
                 .write(true)
                 .create(true)
-                .open(file).unwrap();
-                f.write_fmt(format_args!("{}\n", value)).unwrap();
-        },
+                .open(file)
+                .unwrap();
+            f.write_fmt(format_args!("{}\n", value)).unwrap();
+        }
         None => io::stdout().write_fmt(format_args!("{}\n", value)).unwrap(),
     }
-
     Ok(())
 }
 
@@ -75,13 +73,37 @@ mod tests {
 
     #[test]
     fn test_decryption() {
-        assert_eq!(decrypt(13, "RGGHOEHGR"), "ETTUBRUTE");
+        assert_eq!(encrypt(13, "RGGHOEHGR"), "ETTUBRUTE");
     }
 
     #[test]
-    fn test_shift() {
-        let shift: u8 = 5;
-        assert_eq!("ETTUBRUTE", decrypt(shift, &encrypt(shift, "ETTUBRUTE")));
+    fn test_shift_1_15() {
+        for s in 1..15 {
+            assert_eq!("ETTUBRUTE", encrypt(26 % s, &encrypt(s, "ETTUBRUTE")));
+        }
+    }
+
+    #[test]
+    fn test_shift_15_30() {
+        for s in 15..30 {
+            assert_eq!("ETTUBRUTE", encrypt(26 % s, &encrypt(s, "ETTUBRUTE")));
+        }
+    }
+
+    #[test]
+    fn test_encrypt_bruut() {
+        assert_eq!("YORRQ", encrypt(23, "BRUUT"));
+    }
+
+    #[test]
+    fn test_decrypt_bruut() {
+        assert_eq!("BRUUT", encrypt(26 % 23, "YORRQ"));
+    }
+
+    #[test]
+    fn test_shift_23() {
+        let shift: u8 = 23;
+        assert_eq!("BRUUT", encrypt(26 % shift, &encrypt(shift, "BRUUT")));
     }
 
     #[test]
@@ -91,39 +113,42 @@ mod tests {
 }
 
 fn main() {
-   let matches = App::new("Caesar")
-                        .about("Encrypts text, Imperially")
-                        .version("1.0")
-                        .author("Niels Eigenraam <nielseigenraam@gmail.com>")
-                        .arg(Arg::with_name("encrypt")
-                                    .help("Encrypt text")
-                                    .short("e")
-                                    .long("encrypt")
-                                    .takes_value(true)
-                                    .value_name("TEXT or FILE")
-                                    .conflicts_with("decrypt"))
-                        .arg(Arg::with_name("decrypt")
-                                    .help("decrypt encrypted text")
-                                    .short("d")
-                                    .long("decrypt")
-                                    .takes_value(true)
-                                    .value_name("TEXT or FILE")
-                                    .conflicts_with("encrypt"))
-                        .arg(Arg::with_name("output")
-                                    .help("output file")
-                                    .short("o")
-                                    .long("output")
-                                    .takes_value(true)
-                                    .value_name("FILE"))
-                        .arg(Arg::with_name("shift")
-                                    .help("Encryption shift, default is 13")
-                                    .short("s")
-                                    .long("shift")
-                                    .takes_value(true)
-                                    .value_name("N"))
-                        .get_matches();
+    let matches = App::new("Julius")
+        .version("1.1.0")
+        .author("Niels Eigenraam <nielseigenraam@gmail.com>")
+        .about("Imperial encryption")
+        .arg(
+            Arg::with_name("encrypt")
+                .short("e")
+                .long("encrypt")
+                .takes_value(true)
+                .conflicts_with("decrypt")
+                .help("A cool file or string"),
+        )
+        .arg(
+            Arg::with_name("decrypt")
+                .short("d")
+                .long("decrypt")
+                .takes_value(true)
+                .help("A cool ENCRYPTED file or string"),
+        )
+        .arg(
+            Arg::with_name("output")
+                .short("o")
+                .long("output")
+                .takes_value(true)
+                .help("A cool file or string to write output to"),
+        )
+        .arg(
+            Arg::with_name("shift")
+                .short("s")
+                .long("shift")
+                .takes_value(true)
+                .help("A cool shift to encrypt your text with"),
+        )
+        .get_matches();
 
-   if let Err(e) = run(matches) {
+    if let Err(e) = run(matches) {
         println!("{}", e);
         process::exit(1);
     }
