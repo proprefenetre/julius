@@ -1,18 +1,24 @@
-# The Caesar Cipher
+# Julius: the Caesar Cipher
 
 The Caesar Cipher is a wonderful encryption algorithm if you have got nothing
 to hide. Its strong points are that the cipher is very easy to break, and that
-everybody knows about it.
+everybody knows about it. No more worrying about lost keys!
 
-## Usage
+# TO DO
+- print usage when used without arguments
+- accept input without flags or command line flags
+- remove ">" in front of output
+- add subcommands: 'e' for 'encrypt', 'd' for 'decrypt'
+
+# Usage
 
 ~~~
-Caesar 1.0
+Julius 1.0
 Niels Eigenraam <nielseigenraam@gmail.com>
 Encrypts text, Imperially
 
 USAGE:
-    caesar [OPTIONS]
+    julius [OPTIONS]
 
 FLAGS:
     -h, --help       Prints help information
@@ -25,23 +31,23 @@ OPTIONS:
     -s, --shift <N>                 Encryption shift, default is 13
 ~~~
 
-By default, `caesar` can be used to decipher classified text using ROT13:
+By default, `julius` can be used to decipher classified text using ROT13:
 
 ~~~
-$ caesar -e ATTACKATDAWN
+$ julius -e ETTUBRUTE
+> RGGHOEHGR
+$ julius -e RGGHOEHGR
+> ETTUBRUTE
+~~~
+
+If you give it a file path, `julius` will read its input from the file. You can
+specify your own secret shift using the `-s/--shift` option. The encrypted contents of the file
+will be written to stdout or to a file if one is specified using the `-o/--output` option.
+
+~~~
+$ julius -s 5 -e ITSJUSTARABBIT
 > NGGNPXNGQNJA
-$ caesar -e NGGNPXNGQNJA
-> ATTACKATDAWN
-~~~
-
-If you give it a file path, `caesar` will read its input from the file. You can
-specify your own secret shift using the `-s/--shift` option. will be written to
-stdout or to a file if one is specified using the `-o/--output` option.
-
-~~~
-$ caesar -s 5 -e ITSJUSTARABBIT
-> NGGNPXNGQNJA 
-$ caesar -s 5 -d NGGNPXNGQNJA -o message.txt
+$ julius -s 5 -d NGGNPXNGQNJA -o message.txt
 $ cat message.txt
 ITSJUSTARABBIT
 $
@@ -52,14 +58,14 @@ $
 Clone the repo:
 
 ~~~
-$ git clone https://github.com/proprefenetre/rust-caesar.git && cd rust-caesar
+$ git clone https://github.com/proprefenetre/rust-julius.git && cd rust-julius
 ~~~
 
-Build and install `caesar` using cargo:
+Build and install `julius` using cargo:
 
 ~~~
 $ cargo build --release
 $ cargo install
 ~~~
 
-You might want to add `~/.cargo/bin` to you path, if it isn't already. 
+You might want to add `~/.cargo/bin` to you path, if it isn't already.
