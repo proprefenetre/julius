@@ -5,18 +5,19 @@ to hide. Its strong points are that the cipher is very easy to break, and that
 everybody knows about it. No more worrying about lost keys!
 
 # TO DO
-- fix `shift`
+- [x] fix `shift`
 - [x] print usage when used without arguments
-- ~accept input without flags or command line flags~
+- WONTFIX accept input without flags or command line flags
 - [x] remove ">" in front of output
-- ~add subcommands: 'e' for 'encrypt', 'd' for 'decrypt'~
+- WONTFIX add subcommands: 'e' for 'encrypt', 'd' for 'decrypt'
+- add config file 
 
 # Usage
 
 ~~~
-Julius 1.0
+Julius 1.1.0
 Niels Eigenraam <nielseigenraam@gmail.com>
-Encrypts text, Imperially
+Imperial encryption
 
 USAGE:
     julius [OPTIONS]
@@ -26,10 +27,11 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -d, --decrypt <TEXT or FILE>    decrypt encrypted text
-    -e, --encrypt <TEXT or FILE>    Encrypt text
-    -o, --output <FILE>             output file
-    -s, --shift <N>                 Encryption shift, default is 13
+    -c, --caesar <caesar>    Encrypt with caesar shift
+    -k, --key <key>          key phrase or file
+    -o, --output <output>    file to write output to
+    -s, --shift <shift>      shift to caesar your text with
+    -x, --xor <xor>          Encrypt with xor
 ~~~
 
 By default, `julius` can be used to decipher classified text using ROT13:

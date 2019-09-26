@@ -75,8 +75,8 @@ fn xor(key: &str, text: &str) -> String {
     let mut key = file_or_str(key);
     if key.len() < text.len() {
         key.push_str(key.repeat(text.len() / key.len()).as_str());
-        key.truncate(text.len());
     }
+    key.truncate(text.len());
 
     let mut cipher = String::from("");
     for (k, t) in key.chars().zip(text.chars()) {
