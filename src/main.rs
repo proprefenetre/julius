@@ -8,10 +8,11 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::process;
 
-fn encrypt(shift: i32, text: &str) -> String {
+fn caesar(mut shift: i32, text: &str) -> String {
     if shift < 0 {
         shift = 26 + shift;
     }
+
     let mut cipher: Vec<char> = vec![];
     for c in text.chars() {
         let case: u8 = if c.is_uppercase() { 'A' } else { 'a' } as u8;
@@ -21,8 +22,102 @@ fn encrypt(shift: i32, text: &str) -> String {
             cipher.push(c as char);
         }
     }
+
     cipher.iter().collect::<String>()
 }
+
+#[cfg(test)]
+mod caesar_tests {
+    use super::*;
+
+    #[test]
+    fn test_encryption() {
+        assert_eq!(caesar(13, "ETTUBRUTE"), "RGGHOEHGR");
+    }
+
+    #[test]
+    fn test_decryption() {
+        assert_eq!(caesar(13, "RGGHOEHGR"), "ETTUBRUTE");
+    }
+
+    #[test]
+    fn test_shift_1_15() {
+        for s in 1..15 {
+            assert_eq!("ETTUBRUTE", caesar(26 - s, &caesar(s, "ETTUBRUTE")));
+        }
+    }
+
+    #[test]
+    fn test_shift_15_30() {
+        for s in 15..30 {
+            assert_eq!("ETTUBRUTE", caesar(26 - s, &caesar(s, "ETTUBRUTE")));
+        }
+    }
+
+    #[test]
+    fn test_encrypt_bruut() {
+        assert_eq!("YORRQ", caesar(23, "BRUUT"));
+    }
+
+    #[test]
+    fn test_decrypt_bruut() {
+        assert_eq!("BRUUT", caesar(26 % 23, "YORRQ"));
+    }
+
+    #[test]
+    fn test_shift_23() {
+        let shift: i32 = 23;
+        assert_eq!("BRUUT", caesar(26 % shift, &caesar(shift, "BRUUT")));
+    }
+}
+
+fn xor(key: &str, text: &str) -> String {
+    let mut key = file_or_str(key);
+    if key.len() < text.len() {
+        key.push_str(key.repeat(text.len() / key.len()).as_str());
+        key.truncate(text.len());
+    }
+
+    let mut cipher = String::from("");
+    for (k, t) in key.chars().zip(text.chars()) {
+        cipher.push((k as u8 ^ t as u8) as char);
+    }
+
+    cipher
+}
+
+#[cfg(test)]
+mod xor_tests {
+    use super::*;
+
+    #[test]
+    fn test_file_or_str() {
+        assert_eq!(file_or_str("this is a string"), "this is a string")
+    }
+
+    #[test]
+    fn test_xor_key_shorter() {
+        let text = "lorem ipsum";
+        let key = "123";
+        assert_eq!(xor(key, &xor(key, text)), text);
+    }
+
+    #[test]
+    fn test_xor_key_longer() {
+        let text = "lorem ipsum";
+        let key = "012345678910111213";
+        assert_eq!(xor(key, &xor(key, text)), text);
+    }
+
+    #[test]
+    fn test_xor_key_equal() {
+        let key = "12345678901";
+        let text = "lorem ipsum";
+        assert_eq!(xor(key, &xor(key, text)), text)
+    }
+}
+
+// TODO s-boxes
 
 fn file_or_str(inp: &str) -> String {
     if let true = Path::new(&inp).exists() {
@@ -35,17 +130,24 @@ fn file_or_str(inp: &str) -> String {
     }
 }
 
+#[cfg(test)]
+mod util_tests {
+    use super::*;
+    #[test]
+    fn test_file_or_str() {
+        assert_eq!(file_or_str("this is a string"), "this is a string")
+    }
+}
+
 pub fn run(matches: ArgMatches) -> Result<(), String> {
     let mut value = String::new();
-    for m in vec!["encrypt", "decrypt"].iter() {
-        let mut shift: u8 = matches.value_of("shift").unwrap_or("13").parse().unwrap();
 
-        if matches.is_present(m) {
-            if *m == "decrypt" {
-                shift = 26u8 - shift;
-            }
-            value = encrypt(shift, &file_or_str(matches.value_of(m).unwrap()));
-        }
+    if matches.is_present("caesar") {
+        let shift: i32 = matches.value_of("shift").unwrap_or("13").parse().unwrap();
+        value = caesar(shift, &file_or_str(matches.value_of("caesar").unwrap()));
+    } else if matches.is_present("xor") {
+        let key = &matches.value_of("key").unwrap();
+        value = xor(key, &file_or_str(matches.value_of("xor").unwrap()));
     }
 
     match matches.value_of("output") {
@@ -57,61 +159,9 @@ pub fn run(matches: ArgMatches) -> Result<(), String> {
                 .unwrap();
             f.write_fmt(format_args!("{}\n", value)).unwrap();
         }
-        None => io::stdout()
-            .write_fmt(format_args!("> {}\n", value))
-            .unwrap(),
+        None => io::stdout().write_fmt(format_args!("{}\n", value)).unwrap(),
     }
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_encryption() {
-        assert_eq!(encrypt(13, "ETTUBRUTE"), "RGGHOEHGR");
-    }
-
-    #[test]
-    fn test_decryption() {
-        assert_eq!(encrypt(13, "RGGHOEHGR"), "ETTUBRUTE");
-    }
-
-    #[test]
-    fn test_shift_1_15() {
-        for s in 1..15 {
-            assert_eq!("ETTUBRUTE", encrypt(26 % s, &encrypt(s, "ETTUBRUTE")));
-        }
-    }
-
-    #[test]
-    fn test_shift_15_30() {
-        for s in 15..30 {
-            assert_eq!("ETTUBRUTE", encrypt(26 % s, &encrypt(s, "ETTUBRUTE")));
-        }
-    }
-
-    #[test]
-    fn test_encrypt_bruut() {
-        assert_eq!("YORRQ", encrypt(23, "BRUUT"));
-    }
-
-    #[test]
-    fn test_decrypt_bruut() {
-        assert_eq!("BRUUT", encrypt(26 % 23, "YORRQ"));
-    }
-
-    #[test]
-    fn test_shift_23() {
-        let shift: u8 = 23;
-        assert_eq!("BRUUT", encrypt(26 % shift, &encrypt(shift, "BRUUT")));
-    }
-
-    #[test]
-    fn test_file_or_str() {
-        assert_eq!(file_or_str("this is a string"), "this is a string")
-    }
 }
 
 fn main() {
@@ -120,19 +170,26 @@ fn main() {
         .author("Niels Eigenraam <nielseigenraam@gmail.com>")
         .about("Imperial encryption")
         .arg(
-            Arg::with_name("encrypt")
-                .short("e")
-                .long("encrypt")
+            Arg::with_name("caesar")
+                .short("c")
+                .long("caesar")
                 .takes_value(true)
-                .conflicts_with("decrypt")
-                .help("A cool file or string"),
+                .help("Encrypt with caesar shift"),
         )
         .arg(
-            Arg::with_name("decrypt")
-                .short("d")
-                .long("decrypt")
+            Arg::with_name("xor")
+                .short("x")
+                .long("xor")
                 .takes_value(true)
-                .help("A cool ENCRYPTED file or string"),
+                .requires("key")
+                .help("Encrypt with xor"),
+        )
+        .arg(
+            Arg::with_name("key")
+                .short("k")
+                .long("key")
+                .takes_value(true)
+                .help("key phrase or file"),
         )
         .arg(
             Arg::with_name("output")
@@ -146,7 +203,7 @@ fn main() {
                 .short("s")
                 .long("shift")
                 .takes_value(true)
-                .help("A cool shift to encrypt your text with"),
+                .help("A cool shift to caesar your text with"),
         )
         .get_matches();
 
