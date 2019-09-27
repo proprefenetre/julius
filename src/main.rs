@@ -1,12 +1,43 @@
 extern crate clap;
 use clap::{App, Arg, ArgMatches};
 
-use std::fs::File;
+// use std::fs::File;
+use std::fs;
 use std::fs::OpenOptions;
 use std::io;
 use std::io::prelude::*;
 use std::path::Path;
 use std::process;
+
+// TODO s-boxes
+// TODO refactor
+
+// NB: why box? (compiler will tell)
+fn file_or_str(inp: &str) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    if let true = Path::new(&inp).exists() {
+        let outp = fs::read(inp)?;
+        // let mut buf = String::new();
+        // let mut f = File::open(inp)?;
+        // f.read_to_string(&mut buf)?;
+        // Ok(buf.trim().to_string())
+        Ok(outp)
+    } else {
+        // Ok(inp.trim().to_string())
+        Ok(inp.as_bytes().to_vec())
+    }
+}
+
+#[cfg(test)]
+mod util_tests {
+    use super::*;
+    #[test]
+    fn test_file_or_str() {
+        assert_eq!(
+            String::from_utf8(file_or_str("this is a string").unwrap()).unwrap(),
+            "this is a string"
+        )
+    }
+}
 
 fn caesar(mut shift: i32, text: &str) -> String {
     if shift < 0 {
@@ -72,11 +103,10 @@ mod caesar_tests {
 }
 
 fn xor(key: &str, text: &str) -> String {
-    let mut key = file_or_str(key);
+    let mut key = file_or_str(key).unwrap();
     if key.len() < text.len() {
         key.push_str(key.repeat(text.len() / key.len()).as_str());
     }
-    key.truncate(text.len());
 
     let mut cipher = String::from("");
     for (k, t) in key.chars().zip(text.chars()) {
@@ -92,7 +122,7 @@ mod xor_tests {
 
     #[test]
     fn test_file_or_str() {
-        assert_eq!(file_or_str("this is a string"), "this is a string")
+        assert_eq!(file_or_str("this is a string").unwrap(), "this is a string")
     }
 
     #[test]
@@ -119,35 +149,18 @@ mod xor_tests {
 
 // TODO s-boxes
 
-fn file_or_str(inp: &str) -> String {
-    if let true = Path::new(&inp).exists() {
-        let mut buf = String::new();
-        let mut f = File::open(inp).unwrap();
-        f.read_to_string(&mut buf).unwrap();
-        buf
-    } else {
-        inp.to_string()
-    }
-}
-
-#[cfg(test)]
-mod util_tests {
-    use super::*;
-    #[test]
-    fn test_file_or_str() {
-        assert_eq!(file_or_str("this is a string"), "this is a string")
-    }
-}
-
 pub fn run(matches: ArgMatches) -> Result<(), String> {
     let mut value = String::new();
 
     if matches.is_present("caesar") {
         let shift: i32 = matches.value_of("shift").unwrap_or("13").parse().unwrap();
-        value = caesar(shift, &file_or_str(matches.value_of("caesar").unwrap()));
+        value = caesar(
+            shift,
+            &file_or_str(matches.value_of("caesar").unwrap()).unwrap(),
+        );
     } else if matches.is_present("xor") {
         let key = &matches.value_of("key").unwrap();
-        value = xor(key, &file_or_str(matches.value_of("xor").unwrap()));
+        value = xor(key, &file_or_str(matches.value_of("xor").unwrap()).unwrap());
     }
 
     match matches.value_of("output") {
